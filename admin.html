@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TimeVault Admin — Presale Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --purple:#9b59f5;
+  --purple2:#7b3fd4;
+  --purple3:#b47afa;
+  --purple-glow:rgba(155,89,245,0.2);
+  --dark:#08050f;
+  --dark2:#0d0919;
+  --dark3:#120d20;
+  --card:rgba(155,89,245,0.05);
+  --border:rgba(155,89,245,0.15);
+  --border2:rgba(155,89,245,0.25);
+  --muted:#7a6fa0;
+  --silver:#c0b8d8;
+  --white:#f0eaff;
+  --red:#ff5555;
+  --yellow:#ffc800;
+  --blue:#4db8ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Inter",sans-serif;background:var(--dark);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── LOGIN ── */
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(155,89,245,0.1) 0%,transparent 70%),var(--dark);
+}
+.login-box{
+  background:var(--card);border:1px solid var(--border2);border-radius:18px;
+  padding:2.5rem 2rem;width:100%;max-width:380px;
+  box-shadow:0 0 60px rgba(155,89,245,0.08);
+}
+.login-logo{font-family:"Bebas Neue",sans-serif;font-size:1.8rem;letter-spacing:4px;color:var(--purple3);text-align:center;margin-bottom:.25rem}
+.login-sub{font-size:.8rem;color:var(--muted);text-align:center;margin-bottom:2rem;font-weight:600;letter-spacing:.5px}
+.field-label{font-size:.73rem;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem}
+.field{width:100%;background:rgba(155,89,245,0.04);border:1px solid var(--border);border-radius:9px;padding:.75rem 1rem;color:var(--white);font-size:.95rem;font-family:"Inter",sans-serif;outline:none;margin-bottom:1rem;transition:border-color .2s}
+.field:focus{border-color:var(--purple)}
+.btn-login{
+  width:100%;background:linear-gradient(135deg,var(--purple2),var(--purple));
+  color:#fff;padding:.85rem;border-radius:10px;font-weight:900;
+  border:none;cursor:pointer;font-family:"Bebas Neue",sans-serif;
+  font-size:1.1rem;letter-spacing:2px;
+  box-shadow:0 4px 28px rgba(155,89,245,0.3);transition:box-shadow .2s;
+}
+.btn-login:hover{box-shadow:0 4px 42px rgba(155,89,245,0.5)}
+.login-err{color:var(--red);font-size:.8rem;font-weight:700;text-align:center;margin-top:.5rem;display:none}
+
+/* ── MAIN SHELL ── */
+#admin-shell{display:none}
+.topbar{
+  position:fixed;top:0;left:0;width:100%;z-index:100;
+  background:rgba(8,5,15,0.94);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.75rem 1.5rem;
+}
+.topbar-logo{font-family:"Bebas Neue",sans-serif;font-size:1.25rem;letter-spacing:3px;color:var(--purple3)}
+.topbar-right{display:flex;align-items:center;gap:1rem}
+.admin-tag{font-size:.75rem;font-weight:800;letter-spacing:.8px;color:var(--muted);background:rgba(155,89,245,0.08);border:1px solid var(--border);padding:.3rem .75rem;border-radius:999px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#00ff88;display:inline-block;margin-right:.4rem;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,.5)}50%{box-shadow:0 0 0 5px rgba(0,255,136,0)}}
+.btn-logout{background:none;border:1px solid rgba(255,85,85,0.3);color:var(--red);padding:.35rem .85rem;border-radius:7px;font-size:.78rem;font-weight:800;cursor:pointer;transition:background .2s}
+.btn-logout:hover{background:rgba(255,85,85,0.08)}
+
+.main{padding:5.5rem 1.5rem 2rem;max-width:1300px;margin:0 auto}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.85rem;margin-bottom:1.75rem}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple),transparent);opacity:.4}
+.kpi-val{font-family:"Bebas Neue",sans-serif;font-size:2rem;letter-spacing:1.5px;line-height:1;margin-bottom:.25rem}
+.kpi-lbl{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.6px}
+.kpi-val.purple{color:var(--purple3)}
+.kpi-val.yellow{color:var(--yellow)}
+.kpi-val.blue{color:var(--blue)}
+.kpi-val.red{color:var(--red)}
+.kpi-val.green{color:#00ff88}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.1rem;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:220px}
+.search-icon{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none}
+.search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:.65rem .85rem .65rem 2.25rem;color:var(--white);font-size:.88rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .2s}
+.search-input:focus{border-color:var(--purple)}
+.search-input::placeholder{color:var(--muted)}
+.filter-btn{background:var(--card);border:1px solid var(--border);color:var(--silver);padding:.62rem 1rem;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.filter-btn:hover,.filter-btn.active{border-color:var(--purple3);color:var(--purple3)}
+.btn-add{
+  background:linear-gradient(135deg,var(--purple2),var(--purple));
+  color:#fff;padding:.62rem 1.1rem;border-radius:9px;
+  font-size:.9rem;font-weight:900;border:none;cursor:pointer;
+  letter-spacing:1.5px;white-space:nowrap;font-family:"Bebas Neue",sans-serif;
+}
+.btn-refresh{background:rgba(77,184,255,0.08);border:1px solid rgba(77,184,255,0.2);color:var(--blue);padding:.62rem .9rem;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+thead th{padding:.85rem 1rem;text-align:left;font-size:.7rem;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:rgba(155,89,245,0.03);white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(155,89,245,0.06);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(155,89,245,0.04)}
+td{padding:.85rem 1rem;font-size:.85rem;vertical-align:middle}
+.td-user{display:flex;align-items:center;gap:.65rem}
+.avatar{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--purple2),var(--purple3));display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",sans-serif;font-size:.95rem;color:#fff;flex-shrink:0;letter-spacing:1px}
+.u-name{font-weight:800;font-size:.88rem;color:var(--white)}
+.u-addr{font-size:.72rem;color:var(--muted);font-family:monospace;margin-top:.1rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.6px}
+.badge-pending{background:rgba(255,200,0,0.1);color:var(--yellow)}
+.badge-confirmed{background:rgba(155,89,245,0.12);color:var(--purple3)}
+.badge-rejected{background:rgba(255,85,85,0.1);color:var(--red)}
+.badge-connected{background:rgba(100,160,255,0.1);color:#64a0ff}
+.balance-cell{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--purple3)}
+.usdt-cell{font-size:.85rem;color:var(--silver);font-weight:600}
+.date-cell{font-size:.78rem;color:var(--muted);font-weight:600}
+.chain-badge{display:inline-block;background:rgba(155,89,245,0.1);border:1px solid var(--border);border-radius:4px;padding:.1rem .4rem;font-size:.65rem;font-weight:800;color:var(--muted);letter-spacing:.5px;margin-top:.15rem}
+.actions{display:flex;gap:.45rem;flex-wrap:nowrap}
+.btn-sm{padding:.35rem .7rem;border-radius:7px;font-size:.72rem;font-weight:800;border:none;cursor:pointer;letter-spacing:.3px;white-space:nowrap;transition:all .15s}
+.btn-confirm{background:rgba(155,89,245,0.12);color:var(--purple3);border:1px solid rgba(155,89,245,0.25)}
+.btn-confirm:hover{background:rgba(155,89,245,0.22)}
+.btn-edit{background:rgba(77,184,255,0.1);color:var(--blue);border:1px solid rgba(77,184,255,0.2)}
+.btn-edit:hover{background:rgba(77,184,255,0.2)}
+.btn-reject{background:rgba(255,85,85,0.08);color:var(--red);border:1px solid rgba(255,85,85,0.18)}
+.btn-reject:hover{background:rgba(255,85,85,0.16)}
+.empty-row td{text-align:center;padding:3rem;color:var(--muted);font-size:.88rem}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal{background:var(--dark3);border:1px solid var(--border2);border-radius:16px;padding:1.75rem;width:100%;max-width:460px;box-shadow:0 0 80px rgba(155,89,245,0.1)}
+.modal-title{font-family:"Bebas Neue",sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--purple3);margin-bottom:1.25rem}
+.modal-field{margin-bottom:1rem}
+.modal-label{font-size:.72rem;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem}
+.modal-input{width:100%;background:rgba(155,89,245,0.04);border:1px solid var(--border);border-radius:9px;padding:.7rem .9rem;color:var(--white);font-size:.9rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .2s}
+.modal-input:focus{border-color:var(--purple)}
+.modal-input[readonly]{color:var(--muted);cursor:default}
+.modal-select{width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:9px;padding:.7rem .9rem;color:var(--white);font-size:.9rem;font-family:"Inter",sans-serif;outline:none;appearance:none;cursor:pointer}
+.modal-btns{display:flex;gap:.65rem;margin-top:1.5rem}
+.btn-modal-save{flex:1;background:linear-gradient(135deg,var(--purple2),var(--purple));color:#fff;padding:.8rem;border-radius:9px;font-weight:900;border:none;cursor:pointer;font-family:"Bebas Neue",sans-serif;font-size:1rem;letter-spacing:2px}
+.btn-modal-cancel{flex:1;background:none;border:1px solid var(--border);color:var(--muted);padding:.8rem;border-radius:9px;font-weight:700;cursor:pointer;font-size:.88rem}
+.modal-info{background:rgba(155,89,245,0.05);border:1px solid var(--border);border-radius:8px;padding:.75rem .9rem;margin-bottom:1rem}
+.modal-info-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.2rem 0}
+.modal-info-key{color:var(--muted);font-weight:600}
+.modal-info-val{color:var(--white);font-weight:700;font-family:monospace;font-size:.78rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
+  background:var(--dark3);border:1px solid var(--border2);
+  border-radius:11px;padding:.85rem 1.25rem;
+  font-size:.85rem;font-weight:700;color:var(--purple3);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── TABS ── */
+.tab-bar{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:.75rem}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:"Bebas Neue",sans-serif;font-size:1rem;letter-spacing:2px;cursor:pointer;padding:.4rem .9rem;border-radius:8px;transition:all .2s}
+.tab-btn.active{background:rgba(155,89,245,0.1);color:var(--purple3);border:1px solid rgba(155,89,245,0.25)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ── SETTINGS ── */
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.25rem}
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;position:relative;overflow:hidden}
+.settings-card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple),transparent);opacity:.35}
+.settings-card-title{font-family:"Bebas Neue",sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--purple3);margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.s-field{margin-bottom:1rem}
+.s-label{font-size:.7rem;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem}
+.s-input{width:100%;background:rgba(155,89,245,0.04);border:1px solid var(--border);border-radius:9px;padding:.7rem .9rem;color:var(--white);font-size:.88rem;font-family:monospace;outline:none;transition:border-color .2s}
+.s-input:focus{border-color:var(--purple)}
+.btn-save-settings{
+  background:linear-gradient(135deg,var(--purple2),var(--purple));
+  color:#fff;padding:.75rem 1.5rem;border-radius:9px;font-weight:900;
+  border:none;cursor:pointer;font-family:"Bebas Neue",sans-serif;
+  font-size:1rem;letter-spacing:2px;margin-top:.5rem;
+}
+.s-hint{font-size:.73rem;color:var(--muted);margin-top:.3rem;font-weight:600}
+.wallet-display{font-family:monospace;font-size:.82rem;color:var(--purple3);background:rgba(155,89,245,0.07);border:1px solid var(--border);border-radius:8px;padding:.6rem .85rem;word-break:break-all;margin-bottom:1rem}
+
+/* ── SYNC STATUS ── */
+.sync-bar{display:flex;align-items:center;gap:.6rem;padding:.55rem 1rem;background:rgba(155,89,245,0.05);border:1px solid var(--border);border-radius:9px;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:1.25rem}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.sync-dot.ok{background:#00ff88;box-shadow:0 0 6px rgba(0,255,136,.5)}
+.sync-dot.err{background:var(--red)}
+.sync-dot.loading{background:var(--yellow);animation:pulse 1s infinite}
+
+@media(max-width:700px){
+  .u-addr{display:none}
+  .date-cell{display:none}
+  thead th:nth-child(4){display:none}
+  td:nth-child(4){display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <div style="text-align:center;font-size:2.5rem;margin-bottom:.5rem">⏳</div>
+    <div class="login-logo">TIMEVAULT</div>
+    <div class="login-sub">ADMIN DASHBOARD · SOLANA · SECURE ACCESS</div>
+    <div class="field-label">Username</div>
+    <input class="field" id="login-user" type="text" placeholder="admin" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="field-label">Password</div>
+    <input class="field" id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="btn-login" onclick="doLogin()">🔐 LOGIN TO DASHBOARD</button>
+    <div class="login-err" id="login-err">Incorrect username or password.</div>
+  </div>
+</div>
+
+<!-- ── ADMIN SHELL ── -->
+<div id="admin-shell">
+  <div class="topbar">
+    <div class="topbar-logo">⏳ TVT ADMIN · SOL</div>
+    <div class="topbar-right">
+      <span class="admin-tag"><span class="live-dot"></span><span id="admin-name-tag">ADMIN</span></span>
+      <button class="btn-logout" onclick="doLogout()">LOG OUT</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- Sync status -->
+    <div class="sync-bar" id="sync-bar">
+      <div class="sync-dot loading" id="sync-dot"></div>
+      <span id="sync-msg">Connecting to JSONBin…</span>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('orders',this)">📋 ORDERS</button>
+      <button class="tab-btn" onclick="switchTab('settings',this)">⚙️ SETTINGS</button>
+    </div>
+
+    <!-- ── ORDERS TAB ── -->
+    <div class="tab-panel active" id="tab-orders">
+
+      <!-- KPIs -->
+      <div class="kpi-strip">
+        <div class="kpi"><div class="kpi-val purple" id="kpi-total">0</div><div class="kpi-lbl">Total Submissions</div></div>
+        <div class="kpi"><div class="kpi-val blue" id="kpi-connected">0</div><div class="kpi-lbl">Connected Wallets</div></div>
+        <div class="kpi"><div class="kpi-val yellow" id="kpi-pending">0</div><div class="kpi-lbl">Pending Review</div></div>
+        <div class="kpi"><div class="kpi-val green" id="kpi-confirmed">0</div><div class="kpi-lbl">Confirmed</div></div>
+        <div class="kpi"><div class="kpi-val purple" id="kpi-tvt">0</div><div class="kpi-lbl">$TVT Allocated</div></div>
+        <div class="kpi"><div class="kpi-val red" id="kpi-rejected">0</div><div class="kpi-lbl">Rejected</div></div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input class="search-input" id="search-input" placeholder="Search username or wallet…" oninput="renderTable()"/>
+        </div>
+        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" onclick="setFilter('connected',this)">Connected</button>
+        <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
+        <button class="filter-btn" onclick="setFilter('confirmed',this)">Confirmed</button>
+        <button class="filter-btn" onclick="setFilter('rejected',this)">Rejected</button>
+        <button class="btn-refresh" onclick="forceRefresh(this)" id="refresh-btn">⟳ Refresh</button>
+        <button class="btn-add" onclick="openAddModal()">+ ADD ENTRY</button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User / Wallet</th>
+              <th>USDT Sent</th>
+              <th>$TVT Balance</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS TAB ── -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="settings-grid">
+
+        <!-- Deposit Wallet -->
+        <div class="settings-card">
+          <div class="settings-card-title">🏦 Deposit Address (Solana)</div>
+          <div class="s-field">
+            <div class="s-label">Active Presale Wallet</div>
+            <div class="wallet-display" id="current-wallet-display">J4zZGWGL4QQpJNJ3iY59G4g1W6GpFzUnTLDoytXG3i3x</div>
+            <div class="s-label">Change Wallet Address</div>
+            <input class="s-input" id="s-wallet" type="text" placeholder="Solana address (base58)"/>
+            <div class="s-hint">All new purchases on the public site will show this Solana address for USDT payment.</div>
+          </div>
+          <button class="btn-save-settings" onclick="saveSettings()">💾 SAVE WALLET</button>
+        </div>
+
+        <!-- Presale Stats -->
+        <div class="settings-card">
+          <div class="settings-card-title">📊 Presale Stats</div>
+          <div class="s-field">
+            <div class="s-label">USDT Raised (displayed on site)</div>
+            <input class="s-input" id="s-raised" type="number" placeholder="284710" min="0"/>
+          </div>
+          <div class="s-field">
+            <div class="s-label">Round Target (USDT)</div>
+            <input class="s-input" id="s-target" type="number" placeholder="750000" min="1"/>
+          </div>
+          <div class="s-field">
+            <div class="s-label">Progress Bar % (0–100)</div>
+            <input class="s-input" id="s-pct" type="number" placeholder="38" min="0" max="100"/>
+          </div>
+          <div class="s-field">
+            <div class="s-label">$TVT Price (in USDT)</div>
+            <input class="s-input" id="s-tvt-price" type="number" placeholder="0.0045" step="0.0001" min="0.0001"/>
+          </div>
+          <button class="btn-save-settings" onclick="saveSettings()">💾 SAVE STATS</button>
+        </div>
+
+        <!-- JSONBin Config -->
+        <div class="settings-card">
+          <div class="settings-card-title">🔗 JSONBin Sync</div>
+          <div class="s-field">
+            <div class="s-label">Bin ID</div>
+            <div class="wallet-display" style="font-size:.75rem">6a9e4672ac6210605aae1ec3</div>
+            <div class="s-hint">Orders are synced to/from JSONBin in real time. Same bin as the public site.</div>
+          </div>
+          <div class="s-field">
+            <div class="s-label">Last Sync</div>
+            <div class="wallet-display" id="last-sync-time" style="font-size:.75rem">Never</div>
+          </div>
+          <button class="btn-save-settings" style="background:rgba(77,184,255,0.15);color:var(--blue);box-shadow:none;border:1px solid rgba(77,184,255,0.25)" onclick="forceRefresh(this)">⟳ FORCE SYNC NOW</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── EDIT / ADD MODAL ── -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">EDIT ENTRY</div>
+    <div class="modal-info" id="modal-info" style="display:none">
+      <div class="modal-info-row"><span class="modal-info-key">Username</span><span class="modal-info-val" id="mi-user"></span></div>
+      <div class="modal-info-row"><span class="modal-info-key">Wallet</span><span class="modal-info-val" id="mi-wallet"></span></div>
+    </div>
+    <div class="modal-field" id="mf-username" style="display:none">
+      <div class="modal-label">Username</div>
+      <input class="modal-input" id="m-username" type="text" placeholder="username"/>
+    </div>
+    <div class="modal-field" id="mf-wallet" style="display:none">
+      <div class="modal-label">Solana Wallet Address</div>
+      <input class="modal-input" id="m-wallet" type="text" placeholder="base58 address…"/>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">USDT Sent</div>
+      <input class="modal-input" id="m-usdt" type="number" placeholder="0.00" min="0" step="0.01"/>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">$TVT Balance to Credit</div>
+      <input class="modal-input" id="m-tvt" type="number" placeholder="0" min="0"/>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Status</div>
+      <select class="modal-select" id="m-status">
+        <option value="connected">Connected</option>
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="rejected">Rejected</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-modal-save" onclick="saveModal()">💾 SAVE CHANGES</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  TIMEVAULT ADMIN — Solana Edition
+//  Uses JSONBin for persistence (same bin as public site)
+// ════════════════════════════════════════════════════════
+
+// ── CREDENTIALS ─────────────────────────────────────────
+const ADMIN_CREDENTIALS = { Zee: 'DeeZee55001199', admin: 'tvtadmin2026' };
+
+// ── JSONBIN CONFIG ───────────────────────────────────────
+const JSONBIN_API_KEY    = '$2a$10$ExAi99dcwV2sVLtZpqcke.Vfdd/K8sLNCC2lo1hRtx2Ex38LyHhDa';
+const JSONBIN_ORDERS_BIN = '6a9e4672ac6210605aae1ec3';
+const JSONBIN_BASE       = 'https://api.jsonbin.io/v3';
+
+// ── SETTINGS ─────────────────────────────────────────────
+const KEY_SETTINGS = 'tvt_admin_settings_sol';
+const SETTING_DEFAULTS = {
+  wallet:   'J4zZGWGL4QQpJNJ3iY59G4g1W6GpFzUnTLDoytXG3i3x',
+  raised:   284710,
+  target:   750000,
+  pct:      38,
+  tvtPrice: 0.0045,
+};
+
+function loadSettings(){
+  try { return Object.assign({},SETTING_DEFAULTS,JSON.parse(localStorage.getItem(KEY_SETTINGS)||'{}')); }
+  catch(e){ return Object.assign({},SETTING_DEFAULTS); }
+}
+function saveSettings(){
+  const wallet   = document.getElementById('s-wallet').value.trim();
+  const raised   = parseFloat(document.getElementById('s-raised').value)||0;
+  const target   = parseFloat(document.getElementById('s-target').value)||750000;
+  const pct      = Math.min(100,Math.max(0,parseFloat(document.getElementById('s-pct').value)||0));
+  const tvtPrice = parseFloat(document.getElementById('s-tvt-price').value)||0.0045;
+  const settings = { wallet:wallet||loadSettings().wallet, raised, target, pct, tvtPrice };
+  localStorage.setItem(KEY_SETTINGS,JSON.stringify(settings));
+  populateSettingsForm();
+  showToast('✅ Settings saved locally.');
+}
+function populateSettingsForm(){
+  const s = loadSettings();
+  document.getElementById('current-wallet-display').textContent = s.wallet;
+  document.getElementById('s-wallet').value    = s.wallet;
+  document.getElementById('s-raised').value   = s.raised;
+  document.getElementById('s-target').value   = s.target;
+  document.getElementById('s-pct').value      = s.pct;
+  document.getElementById('s-tvt-price').value = s.tvtPrice;
+}
+
+// ── JSONBIN API ───────────────────────────────────────────
+async function jbGetOrders(){
+  setSyncStatus('loading','Syncing…');
+  try {
+    const r = await fetch(`${JSONBIN_BASE}/b/${JSONBIN_ORDERS_BIN}/latest`,{
+      headers:{'X-Master-Key':JSONBIN_API_KEY}
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j = await r.json();
+    const orders = Array.isArray(j.record?.orders) ? j.record.orders : [];
+    setSyncStatus('ok',`Synced · ${orders.length} order(s) · ${new Date().toLocaleTimeString()}`);
+    document.getElementById('last-sync-time').textContent = new Date().toLocaleString();
+    return orders;
+  } catch(e){
+    setSyncStatus('err','Sync failed: '+e.message);
+    return [];
+  }
+}
+async function jbPutOrders(arr){
+  try {
+    const r = await fetch(`${JSONBIN_BASE}/b/${JSONBIN_ORDERS_BIN}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_API_KEY},
+      body:JSON.stringify({orders:arr})
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return true;
+  } catch(e){ showToast('⚠ Sync write failed: '+e.message,'var(--red)'); return false; }
+}
+
+function setSyncStatus(state, msg){
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-msg');
+  dot.className = 'sync-dot '+state;
+  txt.textContent = msg;
+}
+
+// ── STATE ────────────────────────────────────────────────
+let submissions   = [];
+let currentFilter = 'all';
+let editingId     = null;
+let isAdding      = false;
+
+// ── LOGIN ─────────────────────────────────────────────────
+async function doLogin(){
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  if(ADMIN_CREDENTIALS[u] && ADMIN_CREDENTIALS[u] === p){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-shell').style.display  = 'block';
+    document.getElementById('admin-name-tag').textContent = u.toUpperCase();
+    submissions = await jbGetOrders();
+    renderAll();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    setTimeout(()=>document.getElementById('login-err').style.display='none',2500);
+  }
+}
+function doLogout(){
+  document.getElementById('admin-shell').style.display  = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+}
+
+// ── TABS ─────────────────────────────────────────────────
+function switchTab(name, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='settings') populateSettingsForm();
+}
+
+// ── FILTER ───────────────────────────────────────────────
+function setFilter(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+async function forceRefresh(btn){
+  const orig = btn.textContent;
+  btn.textContent = '⟳ Syncing…';
+  submissions = await jbGetOrders();
+  renderAll();
+  btn.textContent = '✓ Done';
+  setTimeout(()=>btn.textContent=orig,1500);
+}
+
+// ── RENDER ───────────────────────────────────────────────
+function renderAll(){ updateKPIs(); renderTable(); }
+
+function updateKPIs(){
+  document.getElementById('kpi-total').textContent     = submissions.length;
+  document.getElementById('kpi-connected').textContent = submissions.filter(s=>s.status==='connected').length;
+  document.getElementById('kpi-pending').textContent   = submissions.filter(s=>s.status==='pending').length;
+  document.getElementById('kpi-confirmed').textContent = submissions.filter(s=>s.status==='confirmed').length;
+  document.getElementById('kpi-rejected').textContent  = submissions.filter(s=>s.status==='rejected').length;
+  const tvt = submissions.filter(s=>s.status==='confirmed').reduce((a,s)=>a+(s.tvt||0),0);
+  document.getElementById('kpi-tvt').textContent       = tvt.toLocaleString();
+}
+
+function renderTable(){
+  const q    = (document.getElementById('search-input').value||'').toLowerCase();
+  const body = document.getElementById('table-body');
+  const rows = submissions.slice().reverse().filter(s=>{
+    if(currentFilter !== 'all' && s.status !== currentFilter) return false;
+    const name = (s.username||'').toLowerCase();
+    const wall = (s.wallet||'').toLowerCase();
+    if(q && !name.includes(q) && !wall.includes(q)) return false;
+    return true;
+  });
+
+  if(!rows.length){
+    body.innerHTML = `<tr class="empty-row"><td colspan="6">No submissions found. Orders appear here as users interact with the public site.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(s=>{
+    const usdtAmt = s.usdt!=null ? '$'+Number(s.usdt).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : (s.status==='connected'?'—':'$0.00');
+    const tvtAmt  = s.tvt ? Number(s.tvt).toLocaleString() : '—';
+    const chain   = s.chain || 'SOL';
+    const canConfirm = s.status==='pending';
+    const canReject  = s.status!=='rejected';
+    return `<tr>
+      <td>
+        <div class="td-user">
+          <div class="avatar">${(s.username||'??').slice(0,2).toUpperCase()}</div>
+          <div>
+            <div class="u-name">${s.username?'@'+esc(s.username):'—'}</div>
+            <div class="u-addr" title="${esc(s.wallet||'')}">
+              ${esc(s.wallet||'—')}
+              <div class="chain-badge">${esc(chain)}</div>
+            </div>
+          </div>
+        </div>
+      </td>
+      <td class="usdt-cell">${usdtAmt}</td>
+      <td class="balance-cell">${tvtAmt}${s.tvt?'<span style="font-size:.72rem;color:var(--muted);margin-left:.3rem">$TVT</span>':''}</td>
+      <td><span class="badge badge-${s.status||'pending'}">${(s.status||'pending').toUpperCase()}</span></td>
+      <td class="date-cell">${s.date||'—'}</td>
+      <td>
+        <div class="actions">
+          ${canConfirm?`<button class="btn-sm btn-confirm" onclick="quickConfirm('${s.id}')">✓ Confirm</button>`:''}
+          <button class="btn-sm btn-edit" onclick="openEditModal('${s.id}')">✎ Edit</button>
+          ${canReject?`<button class="btn-sm btn-reject" onclick="quickReject('${s.id}')">✕ Reject</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── QUICK ACTIONS ────────────────────────────────────────
+async function quickConfirm(id){
+  const s = submissions.find(x=>x.id===id);
+  if(!s) return;
+  if(!s.tvt){ openEditModal(id); showToast('⚠ Set $TVT balance before confirming.','var(--yellow)'); return; }
+  s.status = 'confirmed';
+  s.confirmedAt = new Date().toISOString();
+  await jbPutOrders(submissions);
+  renderAll();
+  showToast('✅ Confirmed @'+s.username);
+}
+async function quickReject(id){
+  const s = submissions.find(x=>x.id===id);
+  if(!s) return;
+  s.status = 'rejected';
+  s.rejectedAt = new Date().toISOString();
+  await jbPutOrders(submissions);
+  renderAll();
+  showToast('✕ Rejected @'+s.username,'var(--red)');
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openEditModal(id){
+  const s = submissions.find(x=>x.id===id);
+  if(!s) return;
+  isAdding = false; editingId = id;
+  document.getElementById('modal-title').textContent = 'EDIT — @'+(s.username||'');
+  document.getElementById('modal-info').style.display = 'flex';
+  document.getElementById('modal-info').style.flexDirection = 'column';
+  document.getElementById('mi-user').textContent   = '@'+(s.username||'');
+  document.getElementById('mi-wallet').textContent = s.wallet||'';
+  document.getElementById('mf-username').style.display = 'none';
+  document.getElementById('mf-wallet').style.display   = 'none';
+  document.getElementById('m-usdt').value   = s.usdt||'';
+  document.getElementById('m-tvt').value    = s.tvt||'';
+  document.getElementById('m-status').value = s.status||'pending';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function openAddModal(){
+  isAdding = true; editingId = null;
+  document.getElementById('modal-title').textContent = 'ADD ENTRY';
+  document.getElementById('modal-info').style.display  = 'none';
+  document.getElementById('mf-username').style.display = 'block';
+  document.getElementById('mf-wallet').style.display   = 'block';
+  ['m-username','m-wallet','m-usdt','m-tvt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-status').value = 'pending';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+
+async function saveModal(){
+  const usdt   = parseFloat(document.getElementById('m-usdt').value)||0;
+  const tvt    = parseFloat(document.getElementById('m-tvt').value)||0;
+  const status = document.getElementById('m-status').value;
+  const settings = loadSettings();
+
+  if(isAdding){
+    const username = document.getElementById('m-username').value.trim();
+    const wallet   = document.getElementById('m-wallet').value.trim();
+    if(!username||!wallet){ showToast('⚠ Username and wallet required.','var(--yellow)'); return; }
+    submissions.push({
+      id:'TVT-'+Date.now(),username,wallet,usdt,tvt,
+      status,chain:'SOL',
+      date:new Date().toISOString().slice(0,10),
+      submittedAt:new Date().toISOString()
+    });
+    showToast('✅ Entry added.');
+  } else {
+    const s = submissions.find(x=>x.id===editingId);
+    if(!s){ showToast('Entry not found.','var(--red)'); return; }
+    Object.assign(s,{usdt,tvt,status});
+    showToast('✅ @'+(s.username||'')+' updated.');
+  }
+  await jbPutOrders(submissions);
+  closeModal();
+  renderAll();
+}
+
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg, color='var(--purple3)'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = color;
+  t.style.borderColor = color;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── AUTO-POLL every 10s ───────────────────────────────────
+let pollActive = false;
+setInterval(async()=>{
+  if(!pollActive) return;
+  const fresh = await jbGetOrders();
+  if(JSON.stringify(fresh)!==JSON.stringify(submissions)){
+    submissions = fresh;
+    renderAll();
+    showToast('🔔 New orders detected — table updated.');
+  }
+},10000);
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('login-user').focus();
+  // start polling after login
+  const origLogin = doLogin;
+  window.doLogin = async function(){
+    await origLogin();
+    pollActive = document.getElementById('admin-shell').style.display !== 'none';
+  };
+});
+</script>
+</body>
+</html>
