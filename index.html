@@ -1253,43 +1253,69 @@ function showWalletConnected(wallet, username){
   if(!username) username = localStorage.getItem('tvt_wallet_user')||'Vault Holder';
   const short = wallet.length>12 ? wallet.slice(0,6)+'...'+wallet.slice(-4) : wallet;
 
-  const avatar   = document.getElementById('wc-avatar');
-  const uname    = document.getElementById('wc-username');
-  const addrDisp = document.getElementById('wc-addr-display');
-  const copyBtn  = document.getElementById('wc-addr-copy-btn');
-  const connectBtn = document.getElementById('wc-connect-btn');
+  const avatar      = document.getElementById('wc-avatar');
+  const uname       = document.getElementById('wc-username');
+  const addrDisp    = document.getElementById('wc-addr-display');
+  const copyBtn     = document.getElementById('wc-addr-copy-btn');
+  const connectBtn  = document.getElementById('wc-connect-btn');
   const disconnWrap = document.getElementById('wc-disconnect-wrap');
 
-  if(avatar){  avatar.textContent = username.slice(0,2).toUpperCase(); }
-  if(uname){   uname.textContent  = '@'+username; }
-  if(addrDisp){ addrDisp.textContent = short; }
-  if(copyBtn){  copyBtn.style.display = 'inline'; }
-  if(connectBtn){ connectBtn.textContent = 'Connected ✓'; connectBtn.style.background='rgba(155,89,245,0.15)'; connectBtn.style.color='var(--purple3)'; connectBtn.style.boxShadow='none'; }
-  if(disconnWrap){ disconnWrap.style.display = 'block'; }
+  if(avatar)     avatar.textContent    = username.slice(0,2).toUpperCase();
+  if(uname)      uname.textContent     = '@'+username;
+  if(addrDisp)   addrDisp.textContent  = short;
+  if(copyBtn)    copyBtn.style.display = 'inline';
+  if(connectBtn){ connectBtn.textContent='Connected ✓'; connectBtn.style.background='rgba(155,89,245,0.15)'; connectBtn.style.color='var(--purple3)'; connectBtn.style.boxShadow='none'; }
+  if(disconnWrap) disconnWrap.style.display = 'block';
 
-  // load order data
+  // Load order data — ONLY confirmed orders count toward balance
   _jb.getOrders().then(all=>{
-    const my = all.filter(o=>o.wallet===wallet && o.status==='confirmed');
-    const tvtAmt = my.reduce((s,o)=>s+(o.tvt||0),0);
-    const usdVal = (tvtAmt*CFG.tvtPrice).toFixed(2);
+    const confirmed  = all.filter(o=>o.wallet===wallet && o.status==='confirmed');
+    const pending    = all.filter(o=>o.wallet===wallet && o.status==='pending');
+    const tvtConfirmed = confirmed.reduce((s,o)=>s+(o.tvt||0),0);
+    const tvtPending   = pending.reduce((s,o)=>s+(o.tvt||0),0);
+
+    // Total balance — confirmed only
     const bal = document.getElementById('wc-total-balance');
-    if(bal) bal.textContent = '$'+(tvtAmt*CFG.tvtPrice).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(bal) bal.textContent = '$'+(tvtConfirmed*CFG.tvtPrice).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    // Available token row — confirmed only
+    const aq = document.getElementById('tok-available-qty');
+    const au = document.getElementById('tok-available-usd');
+    if(aq) aq.innerHTML = tvtConfirmed > 0 ? tvtConfirmed.toLocaleString()+' $TVT' : '0 $TVT';
+    if(au) au.innerHTML = '$'+(tvtConfirmed*CFG.tvtPrice).toFixed(2);
+
+    // Presale locked row — show pending with PENDING badge, not credited
     const tpq = document.getElementById('tok-presale-qty');
     const tpu = document.getElementById('tok-presale-usd');
-    if(tpq) tpq.innerHTML = tvtAmt.toLocaleString()+' $TVT';
-    if(tpu) tpu.innerHTML = '$'+usdVal;
-    const aq  = document.getElementById('tok-available-qty');
-    const au  = document.getElementById('tok-available-usd');
-    if(aq) aq.innerHTML = '0 $TVT';
-    if(au) au.innerHTML = '$0.00';
-    // rewards
-    const pending = all.filter(o=>o.wallet===wallet&&o.status==='pending');
-    const pTvt = pending.reduce((s,o)=>s+(o.tvt||0),0);
-    const dailyAcc = Math.round(pTvt*0.001);
+    if(tpq){
+      if(tvtPending > 0){
+        tpq.innerHTML = tvtPending.toLocaleString()+' $TVT <span style="font-size:.65rem;color:var(--yellow);font-weight:700;background:rgba(255,200,0,0.1);border:1px solid rgba(255,200,0,0.2);padding:.1rem .45rem;border-radius:4px;margin-left:.35rem;letter-spacing:.4px">PENDING</span>';
+      } else if(tvtConfirmed > 0){
+        tpq.innerHTML = tvtConfirmed.toLocaleString()+' $TVT';
+      } else {
+        tpq.innerHTML = '<span class="ph-blur">——</span>';
+      }
+    }
+    if(tpu){
+      if(tvtPending > 0){
+        tpu.innerHTML = '<span style="color:var(--yellow);font-size:.72rem;font-weight:700">Awaiting admin confirmation</span>';
+      } else {
+        tpu.innerHTML = '$'+(tvtConfirmed*CFG.tvtPrice).toFixed(2);
+      }
+    }
+
+    // Rewards — only accrue on confirmed holdings
+    const dailyAcc = Math.round(tvtConfirmed*0.001);
     const r1q = document.getElementById('rew-r1-qty');
     const r1u = document.getElementById('rew-r1-usd');
-    if(r1q) r1q.innerHTML = dailyAcc.toLocaleString()+' $TVT';
-    if(r1u) r1u.innerHTML = '$'+(dailyAcc*CFG.tvtPrice).toFixed(4);
+    if(r1q) r1q.innerHTML = dailyAcc > 0 ? dailyAcc.toLocaleString()+' $TVT' : '<span class="ph-blur">0 $TVT</span>';
+    if(r1u) r1u.innerHTML = dailyAcc > 0 ? '$'+(dailyAcc*CFG.tvtPrice).toFixed(4) : '<span class="ph-blur">$0.00</span>';
+
+    const r2q = document.getElementById('rew-r2-qty');
+    const r2u = document.getElementById('rew-r2-usd');
+    if(r2q) r2q.innerHTML = '<span class="ph-blur">0 $TVT</span>';
+    if(r2u) r2u.innerHTML = '<span class="ph-blur">$0.00</span>';
+
   }).catch(()=>{});
 }
 
